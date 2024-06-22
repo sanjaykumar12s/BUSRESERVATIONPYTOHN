@@ -1,0 +1,145 @@
+import sqlite3
+from datetime import datetime
+
+# Connect to the SQLite database (or create it if it doesn't exist)
+conn = sqlite3.connect('bus_reservation_system.db')
+cursor = conn.cursor()
+
+# Create tables
+cursor.executescript('''
+CREATE TABLE IF NOT EXISTS buses (
+    bus_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bus_name TEXT NOT NULL,
+    capacity INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS routes (
+    route_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    origin TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    departure_time TEXT NOT NULL,
+    arrival_time TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS passengers (
+    passenger_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    contact_info TEXT
+);
+
+CREATE TABLE IF NOT EXISTS reservations (
+    reservation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bus_id INTEGER,
+    route_id INTEGER,
+    passenger_id INTEGER,
+    seat_number INTEGER,
+    reservation_time TEXT NOT NULL,
+    FOREIGN KEY (bus_id) REFERENCES buses(bus_id),
+    FOREIGN KEY (route_id) REFERENCES routes(route_id),
+    FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id)
+);
+''')
+
+conn.commit()
+
+# Function to add a bus
+def add_bus(bus_name, capacity):
+    cursor.execute('INSERT INTO buses (bus_name, capacity) VALUES (?, ?)', (bus_name, capacity))
+    conn.commit()
+
+# Function to add a route
+def add_route(origin, destination, departure_time, arrival_time):
+    cursor.execute('INSERT INTO routes (origin, destination, departure_time, arrival_time) VALUES (?, ?, ?, ?)',
+                   (origin, destination, departure_time, arrival_time))
+    conn.commit()
+
+# Function to add a passenger
+def add_passenger(name, contact_info):
+    cursor.execute('INSERT INTO passengers (name, contact_info) VALUES (?, ?)', (name, contact_info))
+    conn.commit()
+
+# Function to make a reservation
+def make_reservation(bus_id, route_id, passenger_id, seat_number):
+    reservation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    cursor.execute('INSERT INTO reservations (bus_id, route_id, passenger_id, seat_number, reservation_time) VALUES (?, ?, ?, ?, ?)',
+                   (bus_id, route_id, passenger_id, seat_number, reservation_time))
+    conn.commit()
+
+# Function to view all buses
+def view_buses():
+    cursor.execute('SELECT * FROM buses')
+    for row in cursor.fetchall():
+        print(row)
+
+# Function to view all routes
+def view_routes():
+    cursor.execute('SELECT * FROM routes')
+    for row in cursor.fetchall():
+        print(row)
+
+# Function to view all passengers
+def view_passengers():
+    cursor.execute('SELECT * FROM passengers')
+    for row in cursor.fetchall():
+        print(row)
+
+# Function to view all reservations
+def view_reservations():
+    cursor.execute('SELECT * FROM reservations')
+    for row in cursor.fetchall():
+        print(row)
+
+# Main program with user interaction
+def main():
+    while True:
+        print("\nBus Reservation System")
+        print("1. Add Bus")
+        print("2. Add Route")
+        print("3. Add Passenger")
+        print("4. Make Reservation")
+        print("5. View Buses")
+        print("6. View Routes")
+        print("7. View Passengers")
+        print("8. View Reservations")
+        print("9. Exit")
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            bus_name = input("Enter bus name: ")
+            capacity = int(input("Enter bus capacity: "))
+            add_bus(bus_name, capacity)
+        elif choice == '2':
+            origin = input("Enter origin: ")
+            destination = input("Enter destination: ")
+            departure_time = input("Enter departure time (YYYY-MM-DD HH:MM:SS): ")
+            arrival_time = input("Enter arrival time (YYYY-MM-DD HH:MM:SS): ")
+            add_route(origin, destination, departure_time, arrival_time)
+        elif choice == '3':
+            name = input("Enter passenger name: ")
+            contact_info = input("Enter contact info: ")
+            add_passenger(name, contact_info)
+        elif choice == '4':
+            bus_id = int(input("Enter bus ID: "))
+            route_id = int(input("Enter route ID: "))
+            passenger_id = int(input("Enter passenger ID: "))
+            seat_number = int(input("Enter seat number: "))
+            make_reservation(bus_id, route_id, passenger_id, seat_number)
+        elif choice == '5':
+            view_buses()
+        elif choice == '6':
+            view_routes()
+        elif choice == '7':
+            view_passengers()
+        elif choice == '8':
+            view_reservations()
+        elif choice == '9':
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
+
+# Close the connection
+conn.close()
